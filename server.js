@@ -24,33 +24,50 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	});
 
 	if (req.method === 'GET') {
+	    let splittedUrl = req.url.split('/');
+	    
+	    console.log(splittedUrl);
 
-	    //sample request
-	    var query = 'sky';
-	    https.get('https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,(res) => {
-		const { statusCode } = res;
-		const contentType = res.headers['content-type'];
+	    if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
+		// TODO
+		// show recent queries
+		
+	    } else if (splittedUrl[1] === 'api' && splittedUrl === 'imagesearch') {
+		// TODO
+		// get query and make request 
 
-		let error;
-		if (statusCode !== 200) {
-		    error = new Error('Request Failed.\n' +
-				      `Status Code: ${statusCode}`);
-		}
+		//sample request
+		var query = 'sky';
+		var url = 'https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY;
+		
+		https.get(url,(res) => {
+		    const { statusCode } = res;
+		    const contentType = res.headers['content-type'];
 
-		let rawData = '';
-		res.on('data', (chunk) => {
-		    rawData += chunk;
-		});
-		res.on('end', () => {
-		    try {
-			console.log(JSON.parse(rawData));
-		    } catch (e) {
-			console.error(e.message);
+		    let error;
+		    if (statusCode !== 200) {
+			error = new Error('Request Failed.\n' +
+					  `Status Code: ${statusCode}`);
 		    }
+
+		    let rawData = '';
+		    res.on('data', (chunk) => {
+			rawData += chunk;
+		    });
+		    res.on('end', () => {
+			try {
+			    console.log(JSON.parse(rawData));
+			} catch (e) {
+			    console.error(e.message);
+			}
+		    });
+		}).on('error', (e) => {
+		    console.error(`Got error: ${e.message}`);
 		});
-	    }).on('error', (e) => {
-		console.error(`Got error: ${e.message}`);
-	    });
+	    }
+
+
+
 
 	    
 	} else {
