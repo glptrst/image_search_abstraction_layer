@@ -31,18 +31,17 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	    if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
 		// TODO
 		// show recent queries
-		
-	    } else if (splittedUrl[1] === 'api' && splittedUrl === 'imagesearch') {
-		// TODO
-		// get query and make request 
+	    } else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
+
+		var query = splittedUrl[3];
+		// TODO: handle offstring parameter
 
 		//sample request
-		var query = 'sky';
 		var url = 'https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY;
 		
-		https.get(url,(res) => {
-		    const { statusCode } = res;
-		    const contentType = res.headers['content-type'];
+		https.get(url,(response) => {
+		    const { statusCode } = response;
+		    const contentType = response.headers['content-type'];
 
 		    let error;
 		    if (statusCode !== 200) {
@@ -51,12 +50,16 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		    }
 
 		    let rawData = '';
-		    res.on('data', (chunk) => {
+		    response.on('data', (chunk) => {
 			rawData += chunk;
 		    });
-		    res.on('end', () => {
+		    response.on('end', () => {
 			try {
-			    console.log(JSON.parse(rawData));
+			    //console.log(JSON.parse(rawData));
+			    // Show fetched data to the user
+			    res.statusCode = 200;
+			    res.setHeader('Content-type', 'application/json');
+			    res.end(rawData);
 			} catch (e) {
 			    console.error(e.message);
 			}
@@ -64,12 +67,10 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		}).on('error', (e) => {
 		    console.error(`Got error: ${e.message}`);
 		});
+	    } else {
+		res.statusCode = 404;
+		res.end('Something wrong with your query');
 	    }
-
-
-
-
-	    
 	} else {
 	    res.statusCode = 404;
 	    res.end('Wrong method');
