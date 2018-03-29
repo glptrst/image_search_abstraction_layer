@@ -29,12 +29,21 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	    console.log(splittedUrl);
 
 	    if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
-		// TODO
-		// show recent queries
+		collection.find({}).toArray((err, docs) => {
+		    res.statusCode = 200;
+		    res.setHeader('Content-type', 'application/json');
+		    for (let i = 0; i < docs.length; i++) {
+			res.write(docs[i]['query'] + '\n');
+		    }
+		    res.end();
+		});
+		
 	    } else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
 
 		var query = splittedUrl[3];
 		// TODO: handle offset parameter
+
+		// TODO: set a limit of queries to save into db
 
 		//sample request
 		var url = 'https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY;
