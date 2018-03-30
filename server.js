@@ -43,8 +43,6 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		var query = splittedUrl[3];
 		// TODO: handle offset parameter
 
-		// TODO: set a limit of queries to save into db
-
 		//sample request
 		var url = 'https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY;
 		
@@ -64,23 +62,28 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		    });
 		    response.on('end', () => {
 			try {
-			    // console.log(JSON.parse(rawData));
 			    // Show fetched data to the user
 			    res.statusCode = 200;
 			    res.setHeader('Content-type', 'application/json');
 			    res.end(rawData);
 
-			    // Insert query in db
-			    const userQuery = {
-				"query": query,
-				"time": new Date().getTime()
-			    };
-			    collection.insertOne(userQuery, function(err, result){
-				if (err) {
-				    console.log(err);
-				}
-				else {
-				    console.log('Request stored in db');
+			    //Check of number of docs in the db before inserting the query
+			    collection.find({}).count((err, numberOfDocs) => {
+				if (numberOfDocs < 30) {
+				    // Insert query in db
+				    const userQuery = {
+					"query": query,
+					"time": new Date().getTime()
+				    };
+				    collection.insertOne(userQuery, function(err, result){
+					if (err) {
+					    console.log(err);
+					} else {
+					    console.log('Request stored in db');
+					}
+				    });	    
+				} else {
+				    console.log('Cannot store request. DB full.');
 				}
 			    });
 			} catch (e) {
