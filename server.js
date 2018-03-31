@@ -7,15 +7,10 @@ const mongodb = require('mongodb');
 const port = process.env.PORT || 3000;
 
 mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
-    
     if (err) {
 	console.log(err);
     }
-
     var collection = client.db(process.env.DBNAME).collection('usersRequests');
-
-    console.log('connected to db');
-
     const server = http.createServer((req, res) => {
 	req.on('error', (err) => {
 	    console.log(err);
@@ -24,10 +19,8 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	});
 
 	if (req.method === 'GET') {
+	    console.log(`Received get request: ${req.url}`);
 	    let splittedUrl = req.url.split('/');
-	    
-	    console.log(splittedUrl);
-
 	    if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
 		collection.find({}).toArray((err, docs) => {
 		    res.statusCode = 200;
@@ -64,8 +57,12 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 			try {
 			    // Show fetched data to the user
 			    res.statusCode = 200;
-			    res.setHeader('Content-type', 'application/json');
-			    res.end(rawData);
+			    res.setHeader('Content-type', 'text/html');
+			    const items = JSON.parse(rawData).items;
+			    for (let i = 0; i < items.length; i++) {
+				res.write('<a href="' +items[i].link + '">Photo ' + i + '</a> </br>');
+			    }
+			    res.end();
 
 			    //Check of number of docs in the db before inserting the query
 			    collection.find({}).count((err, numberOfDocs) => {
@@ -106,5 +103,4 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
     server.listen(port, () => {
 	console.log('Listening at port ' + port);
     });
-    
 });
