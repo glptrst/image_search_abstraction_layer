@@ -36,15 +36,17 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		});
 		
 	    } else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
-		let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,
-		    query = splittedUrl[3];
-		// query parameter for http get request to google custom search
-		let offset = /\?offset=\d+/.exec(splittedUrl[3]);
 		// Set url for http get request to google custom search
+		let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,
+		    // Query parameter for http get request to google custom search
+		    query = splittedUrl[3],
+		    // Get offset param if present
+		    offset = /\?offset=\d+/.exec(splittedUrl[3]);
 		if (offset !== null) { // If offset param is present
-		    // TODO
-		    console.log('offset present');
-		} 
+		    let offsetNum = /\d+/.exec(offset)[0];
+		    url = url.replace(offset[0], `?start=${offsetNum}`);
+		    query = query.replace(/\?offset=\d+/, '');
+		}
 
 		https.get(url, (response) => {
 		    const { statusCode } = response;
@@ -73,7 +75,7 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 
 			    //Check of number of docs in the db before inserting the query
 			    collection.find({}).count((err, numberOfDocs) => {
-				if (numberOfDocs < 30) {
+				if (numberOfDocs < 999) {
 				    // Insert query in db
 				    const userQuery = {
 					"query": query,
