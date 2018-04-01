@@ -20,8 +20,12 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 
 	if (req.method === 'GET') {
 	    console.log(`Received get request: ${req.url}`);
+
 	    let splittedUrl = req.url.split('/');
+	    
+	    
 	    if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
+		// Show latest image searchs
 		collection.find({}).toArray((err, docs) => {
 		    res.statusCode = 200;
 		    res.setHeader('Content-type', 'application/json');
@@ -32,14 +36,17 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		});
 		
 	    } else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
+		let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,
+		    query = splittedUrl[3];
+		// query parameter for http get request to google custom search
+		let offset = /\?offset=\d+/.exec(splittedUrl[3]);
+		// Set url for http get request to google custom search
+		if (offset !== null) { // If offset param is present
+		    // TODO
+		    console.log('offset present');
+		} 
 
-		var query = splittedUrl[3];
-		// TODO: handle offset parameter
-
-		//sample request
-		var url = 'https://www.googleapis.com/customsearch/v1?q=' + query + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY;
-		
-		https.get(url,(response) => {
+		https.get(url, (response) => {
 		    const { statusCode } = response;
 		    const contentType = response.headers['content-type'];
 
