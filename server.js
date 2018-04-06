@@ -76,30 +76,34 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 				res.statusCode = 200;
 				res.setHeader('Content-type', 'text/html');
 				const items = JSON.parse(rawData).items;
-				for (let i = 0; i < items.length; i++) {
-				    res.write('<a href="' +items[i].link + '">Photo ' + i + '</a> </br>');
-				}
-				res.end();
-
-				//Check of number of docs in the db before inserting the query
-				collection.find({}).count((err, numberOfDocs) => {
-				    if (numberOfDocs < 999) {
-					// Insert query in db
-					const userQuery = {
-					    "query": query,
-					    "time": new Date().getTime()
-					};
-					collection.insertOne(userQuery, function(err, result){
-					    if (err) {
-						console.log(err);
-					    } else {
-						console.log('Request stored in db');
-					    }
-					});	    
-				    } else {
-					console.log('Cannot store request. DB full.');
+				// Check if the api actually gave us something
+				if (items !== undefined) {
+				    for (let i = 0; i < items.length; i++) {
+					res.write('<a href="' +items[i].link + '">Photo ' + i + '</a> </br>');
 				    }
-				});
+				    res.end();
+				    //Check of number of docs in the db before inserting the query
+				    collection.find({}).count((err, numberOfDocs) => {
+					if (numberOfDocs < 999) {
+					    // Insert query in db
+					    const userQuery = {
+						"query": query,
+						"time": new Date().getTime()
+					    };
+					    collection.insertOne(userQuery, function(err, result){
+						if (err) {
+						    console.log(err);
+						} else {
+						    console.log('Request stored in db');
+						}
+					    });	    
+					} else {
+					    console.log('Cannot store request. DB full.');
+					}
+				    });
+				} else {
+				    res.end('No image found :(');
+				}
 			    } catch (e) {
 				console.error(e.message);
 			    }
