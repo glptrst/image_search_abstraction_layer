@@ -34,15 +34,7 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	    } else {
 		let splittedUrl = req.url.split('/');
 		if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
-		    // Show latest image searchs
-		    collection.find({}).toArray((err, docs) => {
-			res.statusCode = 200;
-			res.setHeader('Content-type', 'application/json');
-			for (let i = 0; i < docs.length; i++) {
-			    res.write(docs[i]['query'] + '\n');
-			}
-			res.end();
-		    });
+		    showLatestQueries(collection, res);
 		} else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
 		    // Set url for http get request to google custom search
 		    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,
@@ -126,3 +118,16 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 	console.log('Listening at port ' + port);
     });
 });
+
+
+// Respond using handle with latest queries in collection
+function showLatestQueries (collection, handle) {
+    collection.find({}).toArray((err, docs) => {
+	handle.statusCode = 200;
+	handle.setHeader('Content-type', 'application/json');
+	for (let i = 0; i < docs.length; i++) {
+	    handle.write(docs[i]['query'] + '\n');
+	}
+	handle.end();
+    });
+}
