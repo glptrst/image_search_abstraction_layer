@@ -4,13 +4,16 @@ const https = require('https');
 const fs = require('fs');
 const mongodb = require('mongodb');
 
+// Require config variables values (DBURI, DBNAME, CX, API_KEY)
+const config = require('./config');
+
 const port = process.env.PORT || 3000;
 
-mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
+mongodb.MongoClient.connect(config.DBURI, (err, client) => {
     if (err) {
 	console.log(err);
     }
-    var collection = client.db(process.env.DBNAME).collection('usersRequests');
+    var collection = client.db(config.DBNAME).collection('usersRequests');
     const server = http.createServer((req, res) => {
 	req.on('error', (err) => {
 	    console.log(err);
@@ -37,7 +40,7 @@ mongodb.MongoClient.connect(process.env.DBURI, (err, client) => {
 		    showLatestQueries(collection, res);
 		} else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
 		    // Set url for http get request to google custom search
-		    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + process.env.CX + '&searchType=image&key=' + process.env.API_KEY,
+		    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + config.CX + '&searchType=image&key=' + config.API_KEY,
 			// Query parameter for http get request to google custom search
 			query = splittedUrl[3],
 			// Get offset param if present
