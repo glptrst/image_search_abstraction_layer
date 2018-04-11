@@ -9,14 +9,17 @@ if (!process.env.HEROKU)
     // Require config variables values (DBURI, DBNAME, CX, API_KEY)
     const config = require('./config');
 }
-
+const dburi = config.DBURI || process.env.DBURI;
+const dbname = config.DBNAME || process.env.DBNAME;
+const cx = config.CX || process.env.CX;;
+const api_key = config.API_KEY || process.env.API_KEY;
 const port = process.env.PORT || 3000;
 
-mongodb.MongoClient.connect(config.DBURI, (err, client) => {
+mongodb.MongoClient.connect(dburi, (err, client) => {
     if (err) {
 	console.log(err);
     }
-    var collection = client.db(config.DBNAME).collection('usersRequests');
+    var collection = client.db(dbname).collection('usersRequests');
     const server = http.createServer((req, res) => {
 	req.on('error', (err) => {
 	    console.log(err);
@@ -128,7 +131,7 @@ function showLatestQueries (collection, handle) {
 
 function createApiUrl (splittedUrl) {
     // Set url for http get request to google custom search
-    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + config.CX + '&searchType=image&key=' + config.API_KEY,
+    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + cx + '&searchType=image&key=' + api_key,
 	// Query parameter for http get request to google custom search
 	query = splittedUrl[3],
 	// Get offset param if present
