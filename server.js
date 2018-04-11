@@ -4,8 +4,11 @@ const https = require('https');
 const fs = require('fs');
 const mongodb = require('mongodb');
 
-// Require config variables values (DBURI, DBNAME, CX, API_KEY)
-const config = require('./config');
+if (!process.env.HEROKU)
+{
+    // Require config variables values (DBURI, DBNAME, CX, API_KEY)
+    const config = require('./config');
+}
 
 const port = process.env.PORT || 3000;
 
