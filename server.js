@@ -7,7 +7,7 @@ const mongodb = require('mongodb');
 if (!process.env.HEROKU)
 {
     // Require config variables values (DBURI, DBNAME, CX, API_KEY)
-    const config = require('./config');
+    var config = require('./config');
 }
 const dburi = config.DBURI || process.env.DBURI;
 const dbname = config.DBNAME || process.env.DBNAME;
