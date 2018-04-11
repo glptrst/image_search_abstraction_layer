@@ -39,19 +39,7 @@ mongodb.MongoClient.connect(config.DBURI, (err, client) => {
 		if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
 		    showLatestQueries(collection, res);
 		} else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
-		    // Set url for http get request to google custom search
-		    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + config.CX + '&searchType=image&key=' + config.API_KEY,
-			// Query parameter for http get request to google custom search
-			query = splittedUrl[3],
-			// Get offset param if present
-			offset = /\?offset=\d+/.exec(splittedUrl[3]);
-		    if (offset !== null) { // If offset param is present
-			let offsetNum = /\d+/.exec(offset)[0];
-			url = url.replace(offset[0], `?start=${offsetNum}`);
-			query = query.replace(/\?offset=\d+/, '');
-		    }
-
-		    https.get(url, (response) => {
+		    https.get(createApiUrl(splittedUrl), (response) => {
 			const { statusCode } = response;
 			const contentType = response.headers['content-type'];
 
@@ -82,7 +70,7 @@ mongodb.MongoClient.connect(config.DBURI, (err, client) => {
 					if (numberOfDocs < 999) {
 					    // Insert query in db
 					    const userQuery = {
-						"query": query,
+						"query": getQuery(splittedUrl),
 						"time": new Date().getTime()
 					    };
 					    collection.insertOne(userQuery, function(err, result){
@@ -133,4 +121,32 @@ function showLatestQueries (collection, handle) {
 	}
 	handle.end();
     });
+}
+
+function createApiUrl (splittedUrl) {
+    // Set url for http get request to google custom search
+    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + config.CX + '&searchType=image&key=' + config.API_KEY,
+	// Query parameter for http get request to google custom search
+	query = splittedUrl[3],
+	// Get offset param if present
+	offset = /\?offset=\d+/.exec(splittedUrl[3]);
+    if (offset !== null) { // If offset param is present
+	let offsetNum = /\d+/.exec(offset)[0];
+	url = url.replace(offset[0], `?start=${offsetNum}`);
+	query = query.replace(/\?offset=\d+/, '');
+    }
+
+    return url;
+}
+
+function getQuery (splittedUrl) {
+    // Query parameter for http get request to google custom search
+    let query = splittedUrl[3],
+	// Get offset param if present
+	offset = /\?offset=\d+/.exec(splittedUrl[3]);
+    if (offset !== null) { // If offset param is present
+	query = query.replace(/\?offset=\d+/, '');
+    }
+
+    return query;
 }
