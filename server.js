@@ -4,6 +4,8 @@ const https = require('https');
 const fs = require('fs');
 const mongodb = require('mongodb');
 
+
+
 if (!process.env.HEROKU)
 {
     // Require config variables values (DBURI, DBNAME, CX, API_KEY)
@@ -14,6 +16,8 @@ const dbname = config.DBNAME || process.env.DBNAME;
 const cx = config.CX || process.env.CX;;
 const api_key = config.API_KEY || process.env.API_KEY;
 const port = process.env.PORT || 3000;
+
+const imageSearch = require('./imageSearch');
 
 mongodb.MongoClient.connect(dburi, (err, client) => {
     if (err) {
@@ -43,9 +47,9 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 	    } else {
 		let splittedUrl = req.url.split('/');
 		if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
-		    showLatestQueries(collection, res);
+		    imageSearch.showLatestQueries(collection, res);
 		} else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
-		    https.get(createApiUrl(splittedUrl), (response) => {
+		    https.get(imageSearch.createApiUrl(splittedUrl, cx, api_key), (response) => {
 			const { statusCode } = response;
 			const contentType = response.headers['content-type'];
 
@@ -76,7 +80,7 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 					if (numberOfDocs < 999) {
 					    // Insert query in db
 					    const userQuery = {
-						"query": getQuery(splittedUrl),
+						"query": imageSearch.getQuery(splittedUrl),
 						"time": new Date().getTime()
 					    };
 					    collection.insertOne(userQuery, function(err, result){
@@ -115,44 +119,3 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 	console.log('Listening at port ' + port);
     });
 });
-
-
-// Respond using handle with latest queries in collection
-function showLatestQueries (collection, handle) {
-    collection.find({}).toArray((err, docs) => {
-	handle.statusCode = 200;
-	handle.setHeader('Content-type', 'application/json');
-	for (let i = 0; i < docs.length; i++) {
-	    handle.write(docs[i]['query'] + '\n');
-	}
-	handle.end();
-    });
-}
-
-function createApiUrl (splittedUrl) {
-    // Set url for http get request to google custom search
-    let url = 'https://www.googleapis.com/customsearch/v1?q=' + splittedUrl[3] + '&cx=' + cx + '&searchType=image&key=' + api_key,
-	// Query parameter for http get request to google custom search
-	query = splittedUrl[3],
-	// Get offset param if present
-	offset = /\?offset=\d+/.exec(splittedUrl[3]);
-    if (offset !== null) { // If offset param is present
-	let offsetNum = /\d+/.exec(offset)[0];
-	url = url.replace(offset[0], `?start=${offsetNum}`);
-	query = query.replace(/\?offset=\d+/, '');
-    }
-
-    return url;
-}
-
-function getQuery (splittedUrl) {
-    // Query parameter for http get request to google custom search
-    let query = splittedUrl[3],
-	// Get offset param if present
-	offset = /\?offset=\d+/.exec(splittedUrl[3]);
-    if (offset !== null) { // If offset param is present
-	query = query.replace(/\?offset=\d+/, '');
-    }
-
-    return query;
-}
