@@ -4,17 +4,17 @@ const https = require('https');
 const fs = require('fs');
 const mongodb = require('mongodb');
 
-
-
 if (process.env.HEROKU !== 'true')
 {
     // Require config variables values (DBURI, DBNAME, CX, API_KEY)
     var config = require('./config');
 }
-const dburi = config.DBURI || process.env.DBURI;
-const dbname = config.DBNAME || process.env.DBNAME;
-const cx = config.CX || process.env.CX;;
-const api_key = config.API_KEY || process.env.API_KEY;
+
+const dburi = process.env.HEROKU ? process.env.DBURI : config.DBURI;
+const dbname = process.env.HEROKU ? process.env.DBNAME : config.DBNAME;
+const cx = process.env.HEROKU ? process.env.CX : config.CX;
+const api_key = process.env.HEROKU ? process.env.API_KEY : config.API_KEY;
+
 const port = process.env.PORT || 3000;
 
 const imageSearch = require('./imageSearch');
