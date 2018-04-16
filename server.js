@@ -77,7 +77,7 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 				    res.end();
 				    //Check of number of docs in the db before inserting the query
 				    collection.find({}).count((err, numberOfDocs) => {
-					if (numberOfDocs < 999) {
+					if (numberOfDocs < 20) {
 					    // Insert query in db
 					    const userQuery = {
 						"query": imageSearch.getQuery(splittedUrl),
@@ -91,7 +91,32 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 						}
 					    });	    
 					} else {
-					    console.log('Cannot store request. DB full.');
+					    collection.find({}).toArray(function (err, docs) {
+						if (err) {
+						    console.log(err);
+						} else {
+						    let lastDocId = docs[0]['_id'];
+						    collection.deleteOne({ '_id' : lastDocId }, function(err, result) {
+							if (err) {
+							    console.log(err);
+							} else {
+							    console.log('Last doc deleted');
+							    // Insert query in db
+							    const userQuery = {
+								"query": imageSearch.getQuery(splittedUrl),
+								"time": new Date().getTime()
+							    };
+							    collection.insertOne(userQuery, function(err, result){
+								if (err) {
+								    console.log(err);
+								} else {
+								    console.log('Request stored in db');
+								}
+							    });	    
+							}
+						    });
+						}
+					    });
 					}
 				    });
 				} else {
