@@ -1,7 +1,7 @@
 module.exports = {
-    'showLatestQueries': showLatestQueries,
-    'createApiUrl': createApiUrl,
-    'getQuery': getQuery
+    showLatestQueries: showLatestQueries,
+    createApiUrl: createApiUrl,
+    getQuery: getQuery
 };
 
 // Respond using handle with latest queries in collection
