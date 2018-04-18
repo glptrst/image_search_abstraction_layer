@@ -4,26 +4,18 @@ const https = require('https');
 const fs = require('fs');
 const mongodb = require('mongodb');
 
-if (process.env.HEROKU !== 'true')
-{
-    // Require config variables values (DBURI, DBNAME, CX, API_KEY)
-    var config = require('./config');
-}
-
-const dburi = process.env.HEROKU ? process.env.DBURI : config.DBURI;
-const dbname = process.env.HEROKU ? process.env.DBNAME : config.DBNAME;
-const cx = process.env.HEROKU ? process.env.CX : config.CX;
-const api_key = process.env.HEROKU ? process.env.API_KEY : config.API_KEY;
+// Require config variables values (DBURI, DBNAME, CX, API_KEY)
+var config = require('./config');
 
 const port = process.env.PORT || 3000;
 
 const imageSearch = require('./imageSearch');
 
-mongodb.MongoClient.connect(dburi, (err, client) => {
+mongodb.MongoClient.connect(config.DBURI, (err, client) => {
     if (err) {
 	console.log(err);
     }
-    var collection = client.db(dbname).collection('usersRequests');
+    var collection = client.db(config.DBNAME).collection('usersRequests');
     const server = http.createServer((req, res) => {
 	req.on('error', (err) => {
 	    console.log(err);
@@ -49,7 +41,7 @@ mongodb.MongoClient.connect(dburi, (err, client) => {
 		if (splittedUrl[1] === 'api' && splittedUrl[2] === 'latest' && splittedUrl[3] === 'imagesearch') {
 		    imageSearch.showLatestQueries(collection, res);
 		} else if (splittedUrl[1] === 'api' && splittedUrl[2] === 'imagesearch') {
-		    https.get(imageSearch.createApiUrl(splittedUrl, cx, api_key), (response) => {
+		    https.get(imageSearch.createApiUrl(splittedUrl, config.CX, config.API_KEY), (response) => {
 			const { statusCode } = response;
 			const contentType = response.headers['content-type'];
 
