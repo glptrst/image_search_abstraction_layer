@@ -5,8 +5,8 @@ if (process.env.HEROKU !== 'true')
 }
 
 module.exports = {
-    DBURI: process.env.DBURI || configVariables.DBURI,
-    DBNAME: process.env.DBNAME || configVariables.DBNAME,
-    CX: process.env.CX || configVariables.CX,
-    API_KEY: process.env.API_KEY || configVariables.API_KEY
+    DBURI: process.env.DBURI || configVariables.db.DBURI,
+    DBNAME: process.env.DBNAME || configVariables.db.DBNAME,
+    CX: process.env.CX || configVariables.googleApi.CX,
+    API_KEY: process.env.API_KEY || configVariables.googleApi.API_KEY
 };
