@@ -9,7 +9,7 @@ function showLatestQueries (collection, handle) {
     collection.find({}).toArray((err, docs) => {
 	handle.statusCode = 200;
 	handle.setHeader('Content-type', 'application/json');
-	for (let i = 0; i < docs.length; i++) {
+	for (let i = docs.length-1; i > 0; i--) {
 	    handle.write(docs[i]['query'] + '\n');
 	}
 	handle.end();
